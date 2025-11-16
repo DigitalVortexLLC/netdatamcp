@@ -45,25 +45,25 @@ netdatamcp/
 ### Starting the Server
 
 ```bash
-# Using Python directly
-python src/main.py
+# Using the convenience script
+./start_server.sh
 
-# Or if installed
-netdatamcp
+# Or using Python directly
+PYTHONPATH=/home/runner/work/netdatamcp/netdatamcp/src python src/main.py
 ```
 
-The FastMCP server will start and be available for MCP protocol communication.
+The FastMCP server will start in stdio mode and communicate using the Model Context Protocol.
 
 ### Processing Files
 
 While the server is running (or independently), you can process YANG and SNMP MIB files:
 
 ```bash
-# Process all files in yang/ and mibs/ directories
-python -m netdatamcp.processor
+# Using the convenience script
+./process_files.sh
 
-# Or if installed
-netdatamcp-processor
+# Or using Python directly
+PYTHONPATH=/home/runner/work/netdatamcp/netdatamcp/src python -m netdatamcp.processor
 ```
 
 Place your files in the appropriate directories:

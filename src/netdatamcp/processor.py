@@ -4,39 +4,33 @@ from pathlib import Path
 from .database import DatabaseManager
 from .yang_parser import YangParser
 from .snmp_parser import SnmpParser
+from .config import Config
 
 
 def main():
     """Process all YANG and SNMP MIB files."""
-    # Get paths
-    base_path = Path(__file__).parent.parent.parent
-    yang_dir = base_path / "yang"
-    mibs_dir = base_path / "mibs"
-    db_path = base_path / "data" / "netdata.db"
-
     print("Starting file processing...")
-    print(f"YANG directory: {yang_dir}")
-    print(f"MIBs directory: {mibs_dir}")
-    print(f"Database path: {db_path}")
+    print(f"YANG directory: {Config.YANG_DIR}")
+    print(f"MIBs directory: {Config.MIBS_DIR}")
+    print(f"Database path: {Config.DB_PATH}")
 
     # Ensure directories exist
-    yang_dir.mkdir(exist_ok=True)
-    mibs_dir.mkdir(exist_ok=True)
+    Config.ensure_directories()
 
     # Initialize database and parsers
-    db = DatabaseManager(str(db_path))
+    db = DatabaseManager(str(Config.DB_PATH))
     yang_parser = YangParser(db)
     snmp_parser = SnmpParser(db)
 
     try:
         # Process YANG files
         print("\nProcessing YANG files...")
-        yang_results = yang_parser.process_yang_directory(yang_dir)
+        yang_results = yang_parser.process_yang_directory(Config.YANG_DIR)
         print(f"Processed {len(yang_results)} YANG files")
 
         # Process SNMP MIB files
         print("\nProcessing SNMP MIB files...")
-        snmp_results = snmp_parser.process_snmp_directory(mibs_dir)
+        snmp_results = snmp_parser.process_snmp_directory(Config.MIBS_DIR)
         print(f"Processed {len(snmp_results)} SNMP MIB files")
 
         print("\nFile processing complete!")

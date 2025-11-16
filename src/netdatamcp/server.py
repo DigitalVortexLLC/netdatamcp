@@ -4,14 +4,14 @@ from pathlib import Path
 from typing import Optional, List, Dict, Any
 from fastmcp import FastMCP
 from .database import DatabaseManager
+from .config import Config
 
 
 # Initialize FastMCP server
 mcp = FastMCP("NetData MCP Server")
 
 # Initialize database
-db_path = Path(__file__).parent.parent.parent / "data" / "netdata.db"
-db = DatabaseManager(str(db_path))
+db = DatabaseManager(str(Config.DB_PATH))
 
 
 @mcp.tool()
