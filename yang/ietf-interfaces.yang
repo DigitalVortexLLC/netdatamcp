@@ -1,0 +1,66 @@
+module ietf-interfaces {
+  namespace "urn:ietf:params:xml:ns:yang:ietf-interfaces";
+  prefix "if";
+
+  import ietf-yang-types {
+    prefix yang;
+  }
+
+  organization
+    "IETF NETMOD (Network Modeling) Working Group";
+
+  description
+    "This module contains a collection of YANG definitions for
+     managing network interfaces.";
+
+  revision "2018-02-20" {
+    description
+      "Updated to support NMDA.";
+    reference
+      "RFC 8343: A YANG Data Model for Interface Management";
+  }
+
+  revision "2014-05-08" {
+    description
+      "Initial revision.";
+    reference
+      "RFC 7223: A YANG Data Model for Interface Management";
+  }
+
+  container interfaces {
+    description
+      "Interface configuration and state data.";
+
+    list interface {
+      key "name";
+      description
+        "The list of interfaces on the device.";
+
+      leaf name {
+        type string;
+        description
+          "The name of the interface.";
+      }
+
+      leaf description {
+        type string;
+        description
+          "A textual description of the interface.";
+      }
+
+      leaf type {
+        type string;
+        description
+          "The type of the interface.";
+      }
+
+      leaf enabled {
+        type boolean;
+        default "true";
+        description
+          "This leaf contains the configured, desired state of the
+           interface.";
+      }
+    }
+  }
+}
