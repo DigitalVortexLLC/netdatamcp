@@ -1,0 +1,34 @@
+# Vendor YANG Model Repository Configuration
+# Add new vendors here with their GitHub repository information
+
+vendors:
+  nokia:
+    name: "Nokia"
+    repo_url: "https://github.com/nokia/7x50_YangModels.git"
+    description: "Nokia 7x50 YANG Models"
+    # Paths within the repo where YANG files are located (supports wildcards)
+    yang_paths:
+      - "latest_sros_23.10/**/*.yang"
+      - "latest_sros_24.3/**/*.yang"
+    # Optional: specific branch or tag to checkout
+    branch: "master"
+    enabled: true
+
+  # Example template for adding more vendors:
+  # cisco:
+  #   name: "Cisco"
+  #   repo_url: "https://github.com/YangModels/yang.git"
+  #   description: "Cisco YANG Models"
+  #   yang_paths:
+  #     - "vendor/cisco/**/*.yang"
+  #   branch: "main"
+  #   enabled: true
+
+  # juniper:
+  #   name: "Juniper"
+  #   repo_url: "https://github.com/Juniper/yang.git"
+  #   description: "Juniper YANG Models"
+  #   yang_paths:
+  #     - "**/*.yang"
+  #   branch: "master"
+  #   enabled: true
