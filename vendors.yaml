@@ -1,5 +1,19 @@
 # Vendor YANG Model Repository Configuration
-# Add new vendors here with their GitHub repository information
+#
+# This file configures which vendor YANG model repositories to sync and process.
+#
+# Quick Start:
+#   1. Run: python manage_vendors.py --import
+#      This launches an interactive wizard to select vendors and versions
+#
+#   2. Or manually configure vendors below and run:
+#      python manage_vendors.py --sync --process
+#
+# The --import mode is recommended as it provides:
+#   - Interactive vendor selection from a catalog (Juniper, Nokia, Cisco, Arista)
+#   - Version selection per vendor (latest, default, specific versions, ranges)
+#   - Automatic configuration of this file
+#   - Automatic repository sync and YANG file processing
 
 vendors:
   nokia:
@@ -13,22 +27,52 @@ vendors:
     # Optional: specific branch or tag to checkout
     branch: "master"
     enabled: true
+    selected_versions:
+      - "23.10"
+      - "24.3"
 
-  # Example template for adding more vendors:
+  # To add Juniper YANG models, use the interactive import:
+  #   python manage_vendors.py --import
+  #
+  # Or uncomment and customize the example below:
+  #
+  # juniper:
+  #   name: "Juniper Networks"
+  #   repo_url: "https://github.com/Juniper/yang.git"
+  #   description: "Juniper YANG models for Junos OS"
+  #   yang_paths:
+  #     - "23.4/**/*.yang"
+  #     - "24.2/**/*.yang"
+  #     - "24.4/**/*.yang"
+  #   branch: "master"
+  #   enabled: true
+  #   selected_versions:
+  #     - "23.4"
+  #     - "24.2"
+  #     - "24.4"
+
+  # Additional vendor examples (use --import for easy configuration):
+  #
   # cisco:
   #   name: "Cisco"
   #   repo_url: "https://github.com/YangModels/yang.git"
-  #   description: "Cisco YANG Models"
+  #   description: "Cisco YANG Models from YangModels"
   #   yang_paths:
-  #     - "vendor/cisco/**/*.yang"
+  #     - "vendor/cisco/xe/17.9.1/**/*.yang"
+  #     - "vendor/cisco/xr/7.9.1/**/*.yang"
   #   branch: "main"
   #   enabled: true
-
-  # juniper:
-  #   name: "Juniper"
-  #   repo_url: "https://github.com/Juniper/yang.git"
-  #   description: "Juniper YANG Models"
+  #   selected_versions:
+  #     - "xe/17.9.1"
+  #     - "xr/7.9.1"
+  #
+  # arista:
+  #   name: "Arista"
+  #   repo_url: "https://github.com/aristanetworks/yang.git"
+  #   description: "Arista EOS YANG Models"
   #   yang_paths:
-  #     - "**/*.yang"
+  #     - "EOS-4.30.0F/**/*.yang"
   #   branch: "master"
   #   enabled: true
+  #   selected_versions:
+  #     - "EOS-4.30.0F"
