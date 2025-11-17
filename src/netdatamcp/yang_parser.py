@@ -63,15 +63,19 @@ class YangParser:
         )
 
     def process_yang_directory(self, dir_path: Path) -> List[int]:
-        """Process all YANG files in a directory."""
+        """Process all YANG files in a directory and its subdirectories."""
         results = []
-        
-        for file_path in dir_path.glob('*.yang'):
+
+        # Use recursive glob to find all .yang files in subdirectories
+        for file_path in dir_path.glob('**/*.yang'):
             try:
                 result_id = self.process_yang_file(file_path)
                 results.append(result_id)
-                print(f"Processed YANG file: {file_path.name} (ID: {result_id})")
+                # Show relative path from base directory for clarity
+                rel_path = file_path.relative_to(dir_path)
+                print(f"Processed YANG file: {rel_path} (ID: {result_id})")
             except Exception as e:
-                print(f"Error processing {file_path.name}: {e}")
+                rel_path = file_path.relative_to(dir_path)
+                print(f"Error processing {rel_path}: {e}")
 
         return results
