@@ -74,57 +74,99 @@ Place your files in the appropriate directories:
 
 The server includes a vendor management system to automatically pull and process YANG models from public vendor repositories. This makes it easy to keep vendor models up-to-date.
 
-#### Quick Start
+#### Quick Start - Interactive Import (Recommended)
+
+The easiest way to import YANG models is using the interactive import wizard:
 
 ```bash
-# Sync all vendor repositories and process YANG files
-./sync_vendors.sh
-
-# Or use the Python script directly
-python manage_vendors.py --sync --process
+# Launch interactive import wizard
+python manage_vendors.py --import
 ```
 
-#### Vendor Configuration
+This will guide you through:
+1. Selecting vendors (Juniper, Nokia, Cisco, Arista)
+2. Choosing specific versions for each vendor
+3. Automatically syncing repositories and processing YANG files
+4. Updating the `vendors.yaml` configuration
 
-Vendors are configured in the `vendors.yaml` file. The default configuration includes Nokia:
+**Example Interactive Session:**
+```
+Available vendors:
+  1. Juniper Networks - Juniper YANG models for Junos OS
+  2. Nokia - Nokia 7x50 YANG Models
+  3. Cisco - Cisco YANG Models from YangModels
+  4. Arista - Arista EOS YANG Models
+
+Select vendors to import (comma-separated numbers, or 'all'): 1,2
+
+Juniper Networks - Version Selection
+Available versions (recommended: 23.4, 24.2, 24.4):
+  1. 14.2    2. 15.1    3. 16.1    4. 16.2
+  ...
+  33. 24.2   34. 24.3   35. 24.4
+
+Options:
+  - Enter 'default' for recommended versions
+  - Enter 'latest' for the 3 most recent versions
+  - Enter 'all' for all versions
+  - Enter 'range 33-35' for versions 24.2 through 24.4
+
+Juniper Networks versions: default
+  Selected: 23.4, 24.2, 24.4
+```
+
+#### Supported Vendors
+
+The tool includes built-in support for:
+
+- **Juniper Networks** - Junos OS versions 14.2 through 24.4
+- **Nokia** - 7x50 SROS versions 21.10 through 24.7
+- **Cisco** - IOS XE, IOS XR, and NX-OS models
+- **Arista** - EOS models
+
+#### Alternative: Manual Configuration
+
+You can also manually edit `vendors.yaml`:
 
 ```yaml
 vendors:
-  nokia:
-    name: "Nokia"
-    repo_url: "https://github.com/nokia/7x50_YangModels.git"
-    description: "Nokia 7x50 YANG Models"
+  juniper:
+    name: "Juniper Networks"
+    repo_url: "https://github.com/Juniper/yang.git"
+    description: "Juniper YANG models for Junos OS"
     yang_paths:
-      - "latest_sros_23.10/**/*.yang"
-      - "latest_sros_24.3/**/*.yang"
+      - "23.4/**/*.yang"
+      - "24.2/**/*.yang"
+      - "24.4/**/*.yang"
     branch: "master"
     enabled: true
+    selected_versions:
+      - "23.4"
+      - "24.2"
+      - "24.4"
 ```
 
-#### Adding New Vendors
-
-To add a new vendor, edit `vendors.yaml` and add a new vendor entry:
-
-```yaml
-vendors:
-  cisco:
-    name: "Cisco"
-    repo_url: "https://github.com/YangModels/yang.git"
-    description: "Cisco YANG Models"
-    yang_paths:
-      - "vendor/cisco/**/*.yang"
-    branch: "main"
-    enabled: true
+Then sync and process:
+```bash
+python manage_vendors.py --sync --process
 ```
 
 #### Vendor Management Commands
 
 ```bash
+# Interactive import (recommended)
+python manage_vendors.py --import
+
 # List all configured vendors
 python manage_vendors.py --list
 
+# Sync all vendor repositories and process YANG files
+./sync_vendors.sh
+# Or manually:
+python manage_vendors.py --sync --process
+
 # Sync only a specific vendor
-python manage_vendors.py --sync --vendor nokia
+python manage_vendors.py --sync --vendor juniper
 
 # Process YANG files without syncing
 python manage_vendors.py --process

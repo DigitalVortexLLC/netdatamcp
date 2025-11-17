@@ -9,12 +9,19 @@ Usage:
     python manage_vendors.py [options]
 
 Options:
+    --import            Interactive mode to import YANG models with vendor and version selection
     --sync              Sync (clone/pull) all enabled vendor repositories
     --process           Process YANG files from vendor repos into the database
     --vendor <name>     Only process specific vendor (e.g., --vendor nokia)
     --clean             Remove vendor repositories before syncing
     --list              List all configured vendors
     --help              Show this help message
+
+Supported Vendors:
+    - Juniper Networks (Junos OS 14.2 - 24.4)
+    - Nokia (7x50 SROS 21.10 - 24.7)
+    - Cisco (IOS XE, IOS XR, NX-OS)
+    - Arista (EOS)
 """
 
 import argparse
@@ -23,7 +30,9 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set
+import json
+import re
 
 try:
     import yaml
@@ -37,6 +46,59 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+
+# Vendor catalog with available vendors and their version information
+VENDOR_CATALOG = {
+    'juniper': {
+        'name': 'Juniper Networks',
+        'repo_url': 'https://github.com/Juniper/yang.git',
+        'description': 'Juniper YANG models for Junos OS',
+        'branch': 'master',
+        'versions': [
+            '14.2', '15.1', '16.1', '16.2', '17.1', '17.2', '17.3', '17.4',
+            '18.1', '18.2', '18.3', '18.4', '19.1', '19.2', '19.3', '19.4',
+            '20.1', '20.2', '20.3', '20.4', '21.1', '21.2', '21.3', '21.4',
+            '22.1', '22.2', '22.3', '22.4', '23.1', '23.2', '23.3', '23.4',
+            '24.1', '24.2', '24.3', '24.4'
+        ],
+        'version_path_template': '{version}/**/*.yang',
+        'default_versions': ['23.4', '24.2', '24.4']  # Latest stable versions
+    },
+    'nokia': {
+        'name': 'Nokia',
+        'repo_url': 'https://github.com/nokia/7x50_YangModels.git',
+        'description': 'Nokia 7x50 YANG Models',
+        'branch': 'master',
+        'versions': [
+            '21.10', '22.10', '23.3', '23.7', '23.10', '24.3', '24.7'
+        ],
+        'version_path_template': 'latest_sros_{version}/**/*.yang',
+        'default_versions': ['23.10', '24.3']
+    },
+    'cisco': {
+        'name': 'Cisco',
+        'repo_url': 'https://github.com/YangModels/yang.git',
+        'description': 'Cisco YANG Models from YangModels',
+        'branch': 'main',
+        'versions': [
+            'xe/17.2.1', 'xe/17.3.1', 'xe/17.6.1', 'xe/17.9.1',
+            'xr/7.5.1', 'xr/7.7.1', 'xr/7.9.1',
+            'nx/10.1-1', 'nx/10.2-1', 'nx/10.3-1'
+        ],
+        'version_path_template': 'vendor/cisco/{version}/**/*.yang',
+        'default_versions': ['xe/17.9.1', 'xr/7.9.1', 'nx/10.3-1']
+    },
+    'arista': {
+        'name': 'Arista',
+        'repo_url': 'https://github.com/aristanetworks/yang.git',
+        'description': 'Arista EOS YANG Models',
+        'branch': 'master',
+        'versions': ['EOS-4.27.0F', 'EOS-4.28.0F', 'EOS-4.29.0F', 'EOS-4.30.0F'],
+        'version_path_template': '{version}/**/*.yang',
+        'default_versions': ['EOS-4.30.0F']
+    }
+}
 
 
 class VendorManager:
@@ -286,6 +348,190 @@ class VendorManager:
             logger.info(f"Removing vendor YANG files: {vendor_yang_path}")
             shutil.rmtree(vendor_yang_path)
 
+    def import_vendors_interactive(self):
+        """Interactive mode to import YANG models from multiple vendors with version selection"""
+        print("\n" + "=" * 70)
+        print("  YANG Model Import Tool - Multi-Vendor Version Selector")
+        print("=" * 70)
+        print("\nAvailable vendors:")
+        print()
+
+        # Display available vendors
+        vendor_list = list(VENDOR_CATALOG.keys())
+        for idx, vendor_id in enumerate(vendor_list, 1):
+            vendor_info = VENDOR_CATALOG[vendor_id]
+            enabled_status = ""
+            if vendor_id in self.config and self.config[vendor_id].get('enabled', False):
+                enabled_status = " [Currently Enabled]"
+            print(f"  {idx}. {vendor_info['name']}{enabled_status}")
+            print(f"     {vendor_info['description']}")
+            print()
+
+        # Select vendors
+        print("Select vendors to import (comma-separated numbers, or 'all'):")
+        selection = input("Vendors: ").strip().lower()
+
+        selected_vendors = []
+        if selection == 'all':
+            selected_vendors = vendor_list
+        else:
+            try:
+                indices = [int(x.strip()) for x in selection.split(',')]
+                selected_vendors = [vendor_list[i-1] for i in indices if 0 < i <= len(vendor_list)]
+            except (ValueError, IndexError):
+                logger.error("Invalid selection. Please use comma-separated numbers or 'all'")
+                return
+
+        if not selected_vendors:
+            logger.error("No vendors selected")
+            return
+
+        print(f"\nSelected vendors: {', '.join([VENDOR_CATALOG[v]['name'] for v in selected_vendors])}")
+        print()
+
+        # For each vendor, select versions
+        vendor_configurations = {}
+        for vendor_id in selected_vendors:
+            vendor_info = VENDOR_CATALOG[vendor_id]
+            print("-" * 70)
+            print(f"\n{vendor_info['name']} - Version Selection")
+            print(f"Repository: {vendor_info['repo_url']}")
+            print(f"\nAvailable versions (recommended: {', '.join(vendor_info['default_versions'])}):")
+
+            versions = vendor_info['versions']
+            # Display versions in columns
+            cols = 4
+            for i in range(0, len(versions), cols):
+                version_group = versions[i:i+cols]
+                print("  " + "  ".join(f"{j+i+1:2d}. {v:15s}" for j, v in enumerate(version_group)))
+
+            print("\nOptions:")
+            print("  - Enter version numbers (comma-separated): e.g., 1,5,10")
+            print("  - Enter 'default' for recommended versions")
+            print("  - Enter 'all' for all versions")
+            print("  - Enter 'latest' for the 3 most recent versions")
+            print("  - Enter 'range X-Y' for a range: e.g., range 30-36")
+
+            version_selection = input(f"\n{vendor_info['name']} versions: ").strip().lower()
+
+            selected_versions = []
+            if version_selection == 'all':
+                selected_versions = versions
+            elif version_selection == 'default':
+                selected_versions = vendor_info['default_versions']
+            elif version_selection == 'latest':
+                selected_versions = versions[-3:]
+            elif version_selection.startswith('range '):
+                try:
+                    range_part = version_selection.replace('range ', '').strip()
+                    start, end = map(int, range_part.split('-'))
+                    selected_versions = versions[start-1:end]
+                except (ValueError, IndexError):
+                    logger.error(f"Invalid range format for {vendor_id}")
+                    continue
+            else:
+                try:
+                    indices = [int(x.strip()) for x in version_selection.split(',')]
+                    selected_versions = [versions[i-1] for i in indices if 0 < i <= len(versions)]
+                except (ValueError, IndexError):
+                    logger.error(f"Invalid version selection for {vendor_id}")
+                    continue
+
+            if not selected_versions:
+                logger.warning(f"No versions selected for {vendor_id}, skipping...")
+                continue
+
+            print(f"  Selected: {', '.join(selected_versions)}")
+
+            # Build yang_paths based on selected versions
+            yang_paths = [
+                vendor_info['version_path_template'].format(version=v)
+                for v in selected_versions
+            ]
+
+            vendor_configurations[vendor_id] = {
+                'name': vendor_info['name'],
+                'repo_url': vendor_info['repo_url'],
+                'description': vendor_info['description'],
+                'yang_paths': yang_paths,
+                'branch': vendor_info['branch'],
+                'enabled': True,
+                'selected_versions': selected_versions
+            }
+
+        if not vendor_configurations:
+            logger.error("No vendor configurations created")
+            return
+
+        # Show summary and confirm
+        print("\n" + "=" * 70)
+        print("Configuration Summary:")
+        print("=" * 70)
+        for vendor_id, config in vendor_configurations.items():
+            print(f"\n{config['name']}:")
+            print(f"  Versions: {', '.join(config['selected_versions'])}")
+            print(f"  Total paths: {len(config['yang_paths'])}")
+
+        print("\n" + "=" * 70)
+        confirm = input("\nProceed with this configuration? (yes/no): ").strip().lower()
+
+        if confirm not in ['yes', 'y']:
+            print("Import cancelled.")
+            return
+
+        # Update vendors.yaml
+        self._update_vendors_config(vendor_configurations)
+
+        # Sync repositories
+        print("\n" + "=" * 70)
+        print("Syncing vendor repositories...")
+        print("=" * 70)
+        for vendor_id in vendor_configurations.keys():
+            self.sync_vendor(vendor_id, vendor_configurations[vendor_id])
+
+        # Process YANG files
+        print("\n" + "=" * 70)
+        print("Processing YANG files...")
+        print("=" * 70)
+        for vendor_id in vendor_configurations.keys():
+            self.process_vendor_yang_files(vendor_id, vendor_configurations[vendor_id])
+
+        print("\n" + "=" * 70)
+        print("Import complete!")
+        print("=" * 70)
+        print("\nNext steps:")
+        print("  1. Run './process_files.sh' to parse YANG files into the database")
+        print("  2. Start the MCP server with './start_server.sh'")
+
+    def _update_vendors_config(self, vendor_configurations: Dict):
+        """Update vendors.yaml with new vendor configurations
+
+        Args:
+            vendor_configurations: Dictionary of vendor configurations to add/update
+        """
+        # Load current config
+        if self.config_path.exists():
+            with open(self.config_path, 'r') as f:
+                full_config = yaml.safe_load(f) or {}
+        else:
+            full_config = {}
+
+        if 'vendors' not in full_config:
+            full_config['vendors'] = {}
+
+        # Update with new configurations
+        for vendor_id, config in vendor_configurations.items():
+            full_config['vendors'][vendor_id] = config
+
+        # Write back to file
+        with open(self.config_path, 'w') as f:
+            yaml.dump(full_config, f, default_flow_style=False, sort_keys=False)
+
+        logger.info(f"Updated configuration file: {self.config_path}")
+
+        # Reload config
+        self.config = full_config.get('vendors', {})
+
 
 def main():
     """Main entry point"""
@@ -294,6 +540,9 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
+  # Interactive import - Select vendors and versions interactively
+  python manage_vendors.py --import
+
   # List all configured vendors
   python manage_vendors.py --list
 
@@ -311,9 +560,18 @@ Examples:
 
   # Clean and re-sync all vendors
   python manage_vendors.py --clean --sync --process
+
+Interactive Import Mode:
+  The --import flag launches an interactive wizard that allows you to:
+  - Select multiple vendors (Juniper, Nokia, Cisco, Arista)
+  - Choose specific versions for each vendor
+  - Automatically sync repositories and process YANG files
+  - Update the vendors.yaml configuration
         """
     )
 
+    parser.add_argument('--import', dest='import_mode', action='store_true',
+                        help='Interactive mode to import YANG models from multiple vendors')
     parser.add_argument('--sync', action='store_true',
                         help='Sync (clone/pull) vendor repositories')
     parser.add_argument('--process', action='store_true',
@@ -342,6 +600,9 @@ Examples:
         sys.exit(0)
 
     # Execute requested operations
+    if args.import_mode:
+        manager.import_vendors_interactive()
+
     if args.list:
         manager.list_vendors()
 
