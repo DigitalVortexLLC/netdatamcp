@@ -1,0 +1,61 @@
+# Juniper SNMP MIB Configuration
+# Configure which Juniper product families and versions to download and import
+
+# Common Junos versions available
+# You can find versions at: https://apps.juniper.net/mib-explorer/download
+# Examples: 23.2R1, 23.4R1, 24.1R1, 24.2R1, etc.
+
+juniper_mibs:
+  # Product families and their configurations
+  junos:
+    name: "Junos OS"
+    description: "Juniper Junos Operating System MIBs"
+    # List of Junos versions to download
+    versions:
+      - "24.2R1"
+      - "23.4R1"
+    # Base URL pattern for downloading MIBs
+    # {version} will be replaced with actual version
+    download_url: "https://apps.juniper.net/mib-explorer/download/{version}/all"
+    enabled: true
+
+  # Additional product-specific MIB collections can be added here
+  # Example for specific product families:
+  # mx_series:
+  #   name: "MX Series Routers"
+  #   description: "MX Series specific MIBs"
+  #   versions:
+  #     - "24.2R1"
+  #   download_url: "https://apps.juniper.net/mib-explorer/download/{version}/mx"
+  #   enabled: true
+
+  # qfx_series:
+  #   name: "QFX Series Switches"
+  #   description: "QFX Series specific MIBs"
+  #   versions:
+  #     - "24.2R1"
+  #   download_url: "https://apps.juniper.net/mib-explorer/download/{version}/qfx"
+  #   enabled: false
+
+# Download settings
+settings:
+  # Base directory for storing downloaded MIB archives
+  download_dir: "downloads/juniper_mibs"
+
+  # Target directory for extracted MIBs (relative to project root)
+  target_dir: "mibs/juniper"
+
+  # Whether to preserve version subdirectories
+  organize_by_version: true
+
+  # File patterns to include when extracting
+  file_patterns:
+    - "*.mib"
+    - "*.txt"
+    - "*.my"
+
+  # Whether to automatically process MIBs into database after download
+  auto_process: true
+
+  # Cleanup downloaded archives after extraction
+  cleanup_archives: false

@@ -194,6 +194,60 @@ python manage_vendors.py --help
 4. **Query via MCP server**: `./start_server.sh`
    - Access parsed YANG models through MCP tools
 
+### Managing Juniper SNMP MIBs
+
+The server includes a dedicated system for downloading and managing Juniper SNMP MIBs from the Juniper MIB Explorer. This allows you to easily import MIBs for specific Junos versions.
+
+#### Quick Start
+
+```bash
+# Interactive mode (recommended for first time)
+./sync_juniper_mibs.sh --interactive
+
+# List configured products and versions
+./sync_juniper_mibs.sh --list
+
+# Download all configured MIBs
+./sync_juniper_mibs.sh --download
+
+# Process MIBs into database
+./process_files.sh
+```
+
+#### Configuration
+
+Configure which Junos versions to download in `juniper_mibs.yaml`:
+
+```yaml
+juniper_mibs:
+  junos:
+    name: "Junos OS"
+    description: "Juniper Junos Operating System MIBs"
+    versions:
+      - "24.2R1"
+      - "23.4R1"
+    download_url: "https://apps.juniper.net/mib-explorer/download/{version}/all"
+    enabled: true
+```
+
+#### Common Commands
+
+```bash
+# Download specific product
+./sync_juniper_mibs.sh --download --product junos
+
+# Download specific version
+./sync_juniper_mibs.sh --download --product junos --version 24.2R1
+
+# Clean downloaded files
+./sync_juniper_mibs.sh --clean
+
+# Get help
+./sync_juniper_mibs.sh --help
+```
+
+For detailed documentation, see [JUNIPER_MIBS.md](JUNIPER_MIBS.md).
+
 ### MCP Protocol Usage
 
 The server implements the Model Context Protocol (MCP) and can be used with any MCP-compatible client. It exposes the following tools:
