@@ -262,6 +262,123 @@ This MCP server is designed to be used with Large Language Models (LLMs) through
 3. Retrieve specific versions of data models
 4. Get statistics about available network data
 
+---
+
+## VSCode Client Installation
+
+For users who want to access this MCP server from VSCode using Claude extensions, we provide an automated installation script.
+
+**Public Server URL:** `https://netdata.0xp.dev/mcp`
+
+### Quick Install for VSCode
+
+Run the automated installation script to configure VSCode to use the NetData MCP server:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/DigitalVortexLLC/netdatamcp/main/install-vscode-mcp.sh | bash
+```
+
+Or download and run manually:
+
+```bash
+# Download the script
+wget https://raw.githubusercontent.com/DigitalVortexLLC/netdatamcp/main/install-vscode-mcp.sh
+
+# Make it executable
+chmod +x install-vscode-mcp.sh
+
+# Run the installation
+./install-vscode-mcp.sh
+```
+
+### What the Installation Script Does
+
+The installation script will:
+
+1. ✅ Detect your operating system (Linux/macOS)
+2. ✅ Check and install required dependencies (jq)
+3. ✅ Test connectivity to the MCP server
+4. ✅ Configure VSCode settings for Claude
+5. ✅ Configure Claude Code MCP settings
+6. ✅ Configure Cline/Claude Dev extension (if installed)
+7. ✅ Create backups of all modified configuration files
+8. ✅ Make the server available to all Claude models
+
+### Supported Platforms
+
+- **Linux**: Ubuntu, Debian, Fedora, Arch, and other major distributions
+- **macOS**: All recent versions with Homebrew support
+
+### Supported VSCode Extensions
+
+- Official Claude extension
+- Claude Code
+- Cline (formerly Claude Dev)
+
+### Manual VSCode Configuration
+
+If you prefer to configure manually, add the following to your VSCode settings:
+
+#### VSCode Settings (`settings.json`)
+
+```json
+{
+  "claude.mcpServers": {
+    "netdata": {
+      "url": "https://netdata.0xp.dev/mcp",
+      "transport": "http",
+      "description": "NetData MCP server for YANG and SNMP MIB data queries",
+      "enabled": true
+    }
+  }
+}
+```
+
+#### Claude Code MCP Settings (`~/.config/claude-code/mcp_settings.json`)
+
+```json
+{
+  "mcpServers": {
+    "netdata": {
+      "url": "https://netdata.0xp.dev/mcp",
+      "transport": "http",
+      "description": "NetData MCP server for YANG and SNMP MIB data queries",
+      "enabled": true,
+      "availableToAllModels": true
+    }
+  }
+}
+```
+
+### Verification
+
+After installation:
+
+1. **Restart VSCode** to apply the changes
+2. Open a Claude conversation
+3. The NetData MCP server should appear in the available tools
+4. You can now ask Claude questions about YANG modules and SNMP MIBs
+
+Example queries:
+- "Query all YANG modules in the database"
+- "Show me the ietf-interfaces module version 2018-02-20"
+- "What SNMP MIBs are available?"
+- "List all versions of the SNMPv2-MIB"
+- "Get statistics about available network data models"
+
+### Troubleshooting
+
+For detailed troubleshooting and advanced configuration options, see [INSTALL.md](INSTALL.md).
+
+**Quick fixes:**
+
+1. Ensure you've restarted VSCode after installation
+2. Check that the server URL is accessible: `curl https://netdata.0xp.dev/mcp`
+3. Verify the configuration files were updated correctly
+4. Check VSCode extension logs for any errors
+
+---
+
 ## License
 
 ISC
