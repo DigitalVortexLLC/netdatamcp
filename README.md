@@ -70,6 +70,88 @@ Place your files in the appropriate directories:
 - YANG files (`.yang` extension) in the `yang/` directory
 - SNMP MIB files (`.mib` or `.txt` extension) in the `mibs/` directory
 
+### Managing Vendor YANG Model Repositories
+
+The server includes a vendor management system to automatically pull and process YANG models from public vendor repositories. This makes it easy to keep vendor models up-to-date.
+
+#### Quick Start
+
+```bash
+# Sync all vendor repositories and process YANG files
+./sync_vendors.sh
+
+# Or use the Python script directly
+python manage_vendors.py --sync --process
+```
+
+#### Vendor Configuration
+
+Vendors are configured in the `vendors.yaml` file. The default configuration includes Nokia:
+
+```yaml
+vendors:
+  nokia:
+    name: "Nokia"
+    repo_url: "https://github.com/nokia/7x50_YangModels.git"
+    description: "Nokia 7x50 YANG Models"
+    yang_paths:
+      - "latest_sros_23.10/**/*.yang"
+      - "latest_sros_24.3/**/*.yang"
+    branch: "master"
+    enabled: true
+```
+
+#### Adding New Vendors
+
+To add a new vendor, edit `vendors.yaml` and add a new vendor entry:
+
+```yaml
+vendors:
+  cisco:
+    name: "Cisco"
+    repo_url: "https://github.com/YangModels/yang.git"
+    description: "Cisco YANG Models"
+    yang_paths:
+      - "vendor/cisco/**/*.yang"
+    branch: "main"
+    enabled: true
+```
+
+#### Vendor Management Commands
+
+```bash
+# List all configured vendors
+python manage_vendors.py --list
+
+# Sync only a specific vendor
+python manage_vendors.py --sync --vendor nokia
+
+# Process YANG files without syncing
+python manage_vendors.py --process
+
+# Clean and re-sync all vendors
+python manage_vendors.py --clean --sync --process
+
+# Full help
+python manage_vendors.py --help
+```
+
+#### Workflow
+
+1. **Sync vendor repositories**: `./sync_vendors.sh --sync`
+   - Clones vendor repos to `vendors/` directory
+   - Updates existing repos with latest changes
+
+2. **Process YANG files**: `./sync_vendors.sh --process`
+   - Copies YANG files from vendor repos to `yang/<vendor>/`
+   - Preserves directory structure
+
+3. **Parse into database**: `./process_files.sh`
+   - Parses all YANG files and stores in SQLite database
+
+4. **Query via MCP server**: `./start_server.sh`
+   - Access parsed YANG models through MCP tools
+
 ### MCP Protocol Usage
 
 The server implements the Model Context Protocol (MCP) and can be used with any MCP-compatible client. It exposes the following tools:

@@ -29,6 +29,12 @@ data/
 *.db
 *.log
 
+# Vendor repositories (cloned from external sources)
+vendors/
+
+# Vendor YANG files (generated from vendor repos - run sync_vendors.sh to populate)
+yang/*/
+
 # IDE
 .vscode/
 .idea/

@@ -86,16 +86,20 @@ class SnmpParser:
         )
 
     def process_snmp_directory(self, dir_path: Path) -> List[int]:
-        """Process all MIB files in a directory."""
+        """Process all MIB files in a directory and its subdirectories."""
         results = []
 
-        for file_path in dir_path.glob('*'):
-            if file_path.suffix in ['.mib', '.txt']:
+        # Use recursive glob to find all MIB files in subdirectories
+        for file_path in dir_path.glob('**/*'):
+            if file_path.is_file() and file_path.suffix in ['.mib', '.txt']:
                 try:
                     result_id = self.process_snmp_file(file_path)
                     results.append(result_id)
-                    print(f"Processed SNMP MIB file: {file_path.name} (ID: {result_id})")
+                    # Show relative path from base directory for clarity
+                    rel_path = file_path.relative_to(dir_path)
+                    print(f"Processed SNMP MIB file: {rel_path} (ID: {result_id})")
                 except Exception as e:
-                    print(f"Error processing {file_path.name}: {e}")
+                    rel_path = file_path.relative_to(dir_path)
+                    print(f"Error processing {rel_path}: {e}")
 
         return results
