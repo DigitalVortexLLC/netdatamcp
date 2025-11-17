@@ -1,8 +1,9 @@
 #!/bin/bash
 
-# Netdata MCP Server - VSCode Installation Script
-# This script configures VSCode to use the Netdata MCP server for all Claude models
+# NetData MCP Server - VSCode Installation Script
+# This script configures VSCode to use the NetData MCP server for all Claude models
 # Server URL: https://netdata.0xp.dev/mcp
+# Purpose: Query and analyze YANG modules and SNMP MIB data
 
 set -e
 
@@ -16,7 +17,7 @@ NC='\033[0m' # No Color
 # Configuration
 MCP_SERVER_URL="https://netdata.0xp.dev/mcp"
 MCP_SERVER_NAME="netdata"
-MCP_DESCRIPTION="Netdata monitoring and performance metrics MCP server"
+MCP_DESCRIPTION="NetData MCP server for YANG and SNMP MIB data queries"
 
 # Function to print colored messages
 print_info() {
@@ -292,7 +293,8 @@ display_summary() {
 # Main installation process
 main() {
     echo "======================================================================"
-    echo "Netdata MCP Server - VSCode Installation Script"
+    echo "NetData MCP Server - VSCode Installation Script"
+    echo "YANG and SNMP MIB Data Query Tool"
     echo "======================================================================"
     echo
 

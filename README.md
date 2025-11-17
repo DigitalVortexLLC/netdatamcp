@@ -1,20 +1,21 @@
-# Netdata MCP Server
+# NetData MCP Server
 
-A Model Context Protocol (MCP) server that provides integration between Claude and Netdata monitoring system, enabling AI-powered monitoring, performance analysis, and infrastructure insights.
+A Model Context Protocol (MCP) server that provides integration between Claude and YANG/SNMP MIB data, enabling AI-powered network data model queries and analysis.
 
 ## Overview
 
-This MCP server allows Claude to interact with Netdata's real-time performance and monitoring data, providing intelligent analysis and insights about your infrastructure.
+This MCP server allows Claude to interact with YANG modules and SNMP MIB definitions, providing intelligent querying and analysis of network device data models with version management.
 
 **Server URL:** `https://netdata.0xp.dev/mcp`
 
 ## Features
 
-- Real-time monitoring data access
-- Performance metrics analysis
-- Infrastructure health insights
-- System resource monitoring
-- Custom alerts and notifications
+- YANG module data querying
+- SNMP MIB definition access
+- Version management for network data models
+- Multi-format support (YANG and SNMP)
+- LLM-powered network data model analysis
+- SQLite-based efficient storage and retrieval
 
 ## Installation for VSCode
 
@@ -75,7 +76,7 @@ If you prefer to configure manually, add the following to your VSCode settings:
     "netdata": {
       "url": "https://netdata.0xp.dev/mcp",
       "transport": "http",
-      "description": "Netdata monitoring and performance metrics MCP server",
+      "description": "NetData MCP server for YANG and SNMP MIB data queries",
       "enabled": true
     }
   }
@@ -90,7 +91,7 @@ If you prefer to configure manually, add the following to your VSCode settings:
     "netdata": {
       "url": "https://netdata.0xp.dev/mcp",
       "transport": "http",
-      "description": "Netdata monitoring and performance metrics MCP server",
+      "description": "NetData MCP server for YANG and SNMP MIB data queries",
       "enabled": true,
       "availableToAllModels": true
     }
@@ -104,13 +105,15 @@ After installation:
 
 1. **Restart VSCode** to apply the changes
 2. Open a Claude conversation
-3. The Netdata MCP server should appear in the available tools
-4. You can now ask Claude questions about your monitoring data
+3. The NetData MCP server should appear in the available tools
+4. You can now ask Claude questions about YANG modules and SNMP MIBs
 
 Example queries:
-- "Show me the current system performance metrics"
-- "What are the CPU usage trends over the last hour?"
-- "Are there any performance anomalies in the infrastructure?"
+- "Query all YANG modules in the database"
+- "Show me the ietf-interfaces module version 2018-02-20"
+- "What SNMP MIBs are available?"
+- "List all versions of the SNMPv2-MIB"
+- "Get statistics about available network data models"
 
 ## Troubleshooting
 
@@ -139,9 +142,18 @@ If the MCP server is not accessible:
 - Verify firewall settings
 - Ensure the server URL is correct: `https://netdata.0xp.dev/mcp`
 
+## Available MCP Tools
+
+Once installed, the following tools will be available to Claude:
+
+- **query_data**: Query YANG/SNMP data with filters for type, name, and version
+- **list_all_data**: List all parsed data entries in the database
+- **get_versions**: Get all available versions for a specific module/MIB
+- **get_statistics**: Get database statistics
+
 ## Uninstalling
 
-To remove the Netdata MCP server from your VSCode configuration:
+To remove the NetData MCP server from your VSCode configuration:
 
 1. Open VSCode settings (`settings.json`)
 2. Remove the `netdata` entry from `claude.mcpServers`
@@ -158,7 +170,7 @@ For issues, questions, or contributions:
 
 ## License
 
-[Add your license information here]
+ISC
 
 ## Contributing
 
@@ -166,4 +178,4 @@ Contributions are welcome! Please read our contributing guidelines before submit
 
 ---
 
-**Note:** This MCP server requires an active Netdata instance to function properly. Ensure your Netdata instance is properly configured and accessible.
+**Note:** This MCP server provides access to YANG modules and SNMP MIB definitions for network device data model analysis. It's designed for network engineers and operations teams working with network automation and data models.

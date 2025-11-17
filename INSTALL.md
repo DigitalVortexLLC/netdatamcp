@@ -1,6 +1,6 @@
-# Installation Guide - Netdata MCP Server for VSCode
+# Installation Guide - NetData MCP Server for VSCode
 
-This guide provides detailed instructions for installing and configuring the Netdata MCP server in VSCode.
+This guide provides detailed instructions for installing and configuring the NetData MCP server (YANG and SNMP MIB data queries) in VSCode.
 
 ## Prerequisites
 
@@ -88,7 +88,7 @@ Edit `settings.json` and add the following configuration:
     "netdata": {
       "url": "https://netdata.0xp.dev/mcp",
       "transport": "http",
-      "description": "Netdata monitoring and performance metrics MCP server",
+      "description": "NetData MCP server for YANG and SNMP MIB data queries",
       "enabled": true
     }
   }
@@ -119,7 +119,7 @@ Add the following content:
     "netdata": {
       "url": "https://netdata.0xp.dev/mcp",
       "transport": "http",
-      "description": "Netdata monitoring and performance metrics MCP server",
+      "description": "NetData MCP server for YANG and SNMP MIB data queries",
       "enabled": true,
       "availableToAllModels": true
     }
@@ -149,7 +149,7 @@ Add the following content:
     "netdata": {
       "url": "https://netdata.0xp.dev/mcp",
       "transport": "http",
-      "description": "Netdata monitoring and performance metrics MCP server",
+      "description": "NetData MCP server for YANG and SNMP MIB data queries",
       "enabled": true
     }
   }
@@ -171,8 +171,8 @@ code .
 
 1. Open VSCode
 2. Start a new Claude conversation
-3. Look for the Netdata MCP server in the available tools
-4. Try a test query: "What monitoring tools are available?"
+3. Look for the NetData MCP server in the available tools
+4. Try a test query: "Query all YANG modules" or "What SNMP MIBs are available?"
 
 ### 3. Test the MCP Server
 
@@ -221,7 +221,7 @@ Then run the installation script again.
 
 ### Issue: MCP Server Not Appearing
 
-**Symptoms:** After installation, the Netdata MCP server doesn't appear in Claude.
+**Symptoms:** After installation, the NetData MCP server doesn't appear in Claude.
 
 **Solutions:**
 
@@ -325,6 +325,17 @@ cp ~/Library/Application\ Support/Code/User/settings.json.backup.YYYYMMDD_HHMMSS
 
 Replace `YYYYMMDD_HHMMSS` with the actual timestamp from your backup file.
 
+## Available MCP Tools
+
+After successful installation, Claude will have access to these tools:
+
+- **query_data**: Query YANG/SNMP data with optional filters
+  - Parameters: `type` (yang/snmp), `name`, `version`
+- **list_all_data**: List all parsed data entries
+- **get_versions**: Get all versions of a specific module/MIB
+  - Parameters: `name` (required)
+- **get_statistics**: Get database statistics
+
 ## Uninstalling
 
 ### Automated Removal
@@ -426,9 +437,12 @@ If you encounter issues not covered in this guide:
 After successful installation:
 
 1. Read the [README.md](README.md) for usage examples
-2. Explore Netdata monitoring capabilities
-3. Try example queries in Claude
-4. Configure alerts and notifications
+2. Explore YANG and SNMP MIB querying capabilities
+3. Try example queries in Claude:
+   - "Query all YANG modules"
+   - "Show me ietf-interfaces versions"
+   - "What SNMP MIBs are in the database?"
+4. Review the main branch for full server documentation
 
 ---
 
