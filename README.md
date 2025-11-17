@@ -1,27 +1,196 @@
-# NetData MCP Server
+# NetData MCP
 
-A Model Context Protocol (MCP) server that provides integration between Claude and YANG/SNMP MIB data, enabling AI-powered network data model queries and analysis.
-
-## Overview
-
-This MCP server allows Claude to interact with YANG modules and SNMP MIB definitions, providing intelligent querying and analysis of network device data models with version management.
-
-**Server URL:** `https://netdata.0xp.dev/mcp`
+An HTTP-based Model Context Protocol (MCP) server for managing and querying YANG and SNMP MIB data with versioning support, built with FastMCP and Python.
 
 ## Features
 
-- YANG module data querying
-- SNMP MIB definition access
-- Version management for network data models
-- Multi-format support (YANG and SNMP)
-- LLM-powered network data model analysis
-- SQLite-based efficient storage and retrieval
+- **HTTP-based MCP Server**: RESTful API using FastMCP for querying network data definitions
+- **Multi-format Support**: Parse and store both YANG modules and SNMP MIBs
+- **Version Management**: Store multiple versions of the same module/MIB
+- **SQLite Database**: Local storage with efficient querying capabilities
+- **Side Process**: Background processor for parsing files while server is running
+- **Query Tools**: Rich query interface for LLM-based data retrieval
 
-## Installation for VSCode
+## Installation
 
-### Quick Install
+```bash
+# Install dependencies
+pip install -r requirements.txt
 
-Run the automated installation script to configure VSCode to use the Netdata MCP server:
+# Or install in development mode
+pip install -e .
+```
+
+## Project Structure
+
+```
+netdatamcp/
+├── src/
+│   ├── netdatamcp/
+│   │   ├── __init__.py
+│   │   ├── server.py         # FastMCP server implementation
+│   │   ├── database.py       # SQLite database manager
+│   │   ├── yang_parser.py    # YANG file parser
+│   │   ├── snmp_parser.py    # SNMP MIB parser
+│   │   └── processor.py      # Side process for file processing
+│   └── main.py               # Main entry point
+├── yang/                     # Directory for YANG files
+├── mibs/                     # Directory for SNMP MIB files
+├── data/                     # Database storage (auto-created)
+└── requirements.txt
+```
+
+## Usage
+
+### Starting the Server
+
+```bash
+# Using the convenience script
+./start_server.sh
+
+# Or using Python directly
+PYTHONPATH=/home/runner/work/netdatamcp/netdatamcp/src python src/main.py
+```
+
+The FastMCP server will start in stdio mode and communicate using the Model Context Protocol.
+
+### Processing Files
+
+While the server is running (or independently), you can process YANG and SNMP MIB files:
+
+```bash
+# Using the convenience script
+./process_files.sh
+
+# Or using Python directly
+PYTHONPATH=/home/runner/work/netdatamcp/netdatamcp/src python -m netdatamcp.processor
+```
+
+Place your files in the appropriate directories:
+- YANG files (`.yang` extension) in the `yang/` directory
+- SNMP MIB files (`.mib` or `.txt` extension) in the `mibs/` directory
+
+### MCP Protocol Usage
+
+The server implements the Model Context Protocol (MCP) and can be used with any MCP-compatible client. It exposes the following tools:
+
+## MCP Tools
+
+### query_data
+Query parsed YANG/SNMP data from the database.
+
+**Parameters:**
+- `type` (optional): Filter by type ("yang" or "snmp")
+- `name` (optional): Search by name (supports partial matching)
+- `version` (optional): Filter by specific version
+
+**Example:**
+```python
+# Query all YANG modules
+query_data(type="yang")
+
+# Query specific module with version
+query_data(name="ietf-interfaces", version="2018-02-20")
+
+# Search by partial name
+query_data(name="ietf")
+```
+
+### list_all_data
+List all parsed data entries in the database.
+
+**Example:**
+```python
+list_all_data()
+```
+
+### get_versions
+Get all available versions for a specific module/MIB name.
+
+**Parameters:**
+- `name` (required): Name of the module/MIB
+
+**Example:**
+```python
+get_versions(name="ietf-interfaces")
+```
+
+### get_statistics
+Get database statistics including counts of YANG and SNMP entries.
+
+**Example:**
+```python
+get_statistics()
+```
+
+## MCP Resources
+
+The server also exposes resources:
+
+- `db://all` - Get all database data
+- `db://stats` - Get database statistics
+
+## Database Schema
+
+The SQLite database stores parsed data with the following schema:
+
+```sql
+CREATE TABLE parsed_data (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  type TEXT NOT NULL,              -- 'yang' or 'snmp'
+  name TEXT NOT NULL,              -- Module/MIB name
+  version TEXT NOT NULL,           -- Version identifier
+  data TEXT NOT NULL,              -- Full file content
+  metadata TEXT,                   -- JSON metadata
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(type, name, version)
+);
+```
+
+## Development
+
+### Running in Development Mode
+
+```bash
+# Start the server
+python src/main.py
+
+# Process files
+python -m netdatamcp.processor
+```
+
+### Installing in Development Mode
+
+```bash
+pip install -e .
+```
+
+## Example YANG and SNMP Files
+
+The repository includes example files in the `yang/` and `mibs/` directories:
+- `yang/ietf-interfaces.yang` - Example YANG module
+- `mibs/SNMPv2-MIB.mib` - Example SNMP MIB
+
+## Integration with LLMs
+
+This MCP server is designed to be used with Large Language Models (LLMs) through the Model Context Protocol. The server provides tools that allow LLMs to:
+
+1. Query network device data models (YANG and SNMP MIBs)
+2. Search for specific modules or MIBs by name
+3. Retrieve specific versions of data models
+4. Get statistics about available network data
+
+---
+
+## VSCode Client Installation
+
+For users who want to access this MCP server from VSCode using Claude extensions, we provide an automated installation script.
+
+**Public Server URL:** `https://netdata.0xp.dev/mcp`
+
+### Quick Install for VSCode
+
+Run the automated installation script to configure VSCode to use the NetData MCP server:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/DigitalVortexLLC/netdatamcp/main/install-vscode-mcp.sh | bash
@@ -40,7 +209,7 @@ chmod +x install-vscode-mcp.sh
 ./install-vscode-mcp.sh
 ```
 
-### What the Script Does
+### What the Installation Script Does
 
 The installation script will:
 
@@ -64,11 +233,11 @@ The installation script will:
 - Claude Code
 - Cline (formerly Claude Dev)
 
-## Manual Installation
+### Manual VSCode Configuration
 
 If you prefer to configure manually, add the following to your VSCode settings:
 
-### VSCode Settings (`settings.json`)
+#### VSCode Settings (`settings.json`)
 
 ```json
 {
@@ -83,7 +252,7 @@ If you prefer to configure manually, add the following to your VSCode settings:
 }
 ```
 
-### Claude Code MCP Settings (`~/.config/claude-code/mcp_settings.json`)
+#### Claude Code MCP Settings (`~/.config/claude-code/mcp_settings.json`)
 
 ```json
 {
@@ -99,7 +268,7 @@ If you prefer to configure manually, add the following to your VSCode settings:
 }
 ```
 
-## Verification
+### Verification
 
 After installation:
 
@@ -115,67 +284,19 @@ Example queries:
 - "List all versions of the SNMPv2-MIB"
 - "Get statistics about available network data models"
 
-## Troubleshooting
+### Troubleshooting
 
-### Server Not Appearing in Claude
+For detailed troubleshooting and advanced configuration options, see [INSTALL.md](INSTALL.md).
+
+**Quick fixes:**
 
 1. Ensure you've restarted VSCode after installation
 2. Check that the server URL is accessible: `curl https://netdata.0xp.dev/mcp`
 3. Verify the configuration files were updated correctly
 4. Check VSCode extension logs for any errors
 
-### Configuration Not Working
-
-1. Restore from backup:
-   ```bash
-   # Backups are created with timestamp: filename.backup.YYYYMMDD_HHMMSS
-   # Find the backup file and restore it if needed
-   ```
-
-2. Run the installation script again
-3. Try manual configuration (see above)
-
-### Connectivity Issues
-
-If the MCP server is not accessible:
-- Check your internet connection
-- Verify firewall settings
-- Ensure the server URL is correct: `https://netdata.0xp.dev/mcp`
-
-## Available MCP Tools
-
-Once installed, the following tools will be available to Claude:
-
-- **query_data**: Query YANG/SNMP data with filters for type, name, and version
-- **list_all_data**: List all parsed data entries in the database
-- **get_versions**: Get all available versions for a specific module/MIB
-- **get_statistics**: Get database statistics
-
-## Uninstalling
-
-To remove the NetData MCP server from your VSCode configuration:
-
-1. Open VSCode settings (`settings.json`)
-2. Remove the `netdata` entry from `claude.mcpServers`
-3. Remove the corresponding entries from Claude Code and Cline settings
-4. Restart VSCode
-
-Or restore from the backup files created during installation.
-
-## Support
-
-For issues, questions, or contributions:
-- GitHub Issues: [https://github.com/DigitalVortexLLC/netdatamcp/issues](https://github.com/DigitalVortexLLC/netdatamcp/issues)
-- Documentation: [https://github.com/DigitalVortexLLC/netdatamcp](https://github.com/DigitalVortexLLC/netdatamcp)
+---
 
 ## License
 
 ISC
-
-## Contributing
-
-Contributions are welcome! Please read our contributing guidelines before submitting pull requests.
-
----
-
-**Note:** This MCP server provides access to YANG modules and SNMP MIB definitions for network device data model analysis. It's designed for network engineers and operations teams working with network automation and data models.
